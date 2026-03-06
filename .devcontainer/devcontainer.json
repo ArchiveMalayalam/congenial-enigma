@@ -1,0 +1,32 @@
+{
+  "name": "ArchiveML Dev",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "jekyll",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Shopify.ruby-lsp",
+        "sissel.shopify-liquid"
+      ]
+    }
+  },
+  "forwardPorts": [4000, 8080, 35729],
+  "portsAttributes": {
+    "4000": {
+      "label": "Jekyll Dev",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Production",
+      "onAutoForward": "notify"
+    },
+    "35729": {
+      "label": "LiveReload",
+      "onAutoForward": "silent",
+      "protocol": "http"
+    }
+  },
+  "postCreateCommand": "cd /workspace/jekyll && bundle install",
+  "postStartCommand": "cd /workspace/jekyll && bundle exec jekyll serve --livereload --host 0.0.0.0 | sed 's/0.0.0.0/localhost/g'"
+}
