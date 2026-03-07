@@ -10,7 +10,7 @@ services:
       - JEKYLL_ENV=production
     volumes:
       - .:/workspace
-    command: sleep infinity
+    command: bash -c "cd /workspace/jekyll && bundle install && bundle exec jekyll serve --livereload --host 0.0.0.0"
   ollama:
     image: ollama/ollama
     ports:
@@ -36,6 +36,13 @@ services:
       depends_on:
         - ollama
       restart: unless-stopped
+  node:
+    image: node:22
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    command: bash -c "npm install -g pnpm && sleep infinity"
+    restart: unless-stopped
 volumes:
   ollama_data:
   open-webui_data:
