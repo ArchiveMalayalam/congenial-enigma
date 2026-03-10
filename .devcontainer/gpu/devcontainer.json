@@ -1,0 +1,26 @@
+{
+  "name": "ArchiveML Dev",
+  "dockerComposeFile": [
+    "../../docker-compose.yml",
+    "../../docker-compose.gpu.yml"
+  ],
+  "service": "node",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "christian-kohler.npm-intellisense"
+      ]
+    }
+  },
+  "forwardPorts": [4000, 8080, 35729, 11434, 3000],
+  "portsAttributes": {
+    "4000": { "label": "Jekyll Dev", "onAutoForward": "notify" },
+    "8080": { "label": "Production", "onAutoForward": "notify" },
+    "35729": { "label": "LiveReload", "onAutoForward": "silent", "protocol": "http" },
+    "11434": { "label": "Ollama", "onAutoForward": "silent" },
+    "3000": { "label": "Open WebUI", "onAutoForward": "notify" }
+  }
+}
