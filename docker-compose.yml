@@ -30,12 +30,37 @@ services:
         - ollama
       restart: unless-stopped
   node:
-    image: node:22
-    working_dir: /workspace
-    volumes:
-      - .:/workspace
-    command: bash -c "npm install -g pnpm && sleep infinity"
-    restart: unless-stopped
+      build:
+        context: .
+        dockerfile: Dockerfile.node
+      working_dir: /workspace
+      volumes:
+        - .:/workspace
+      command: bash -c "npm install -g pnpm && sleep infinity"
+      restart: unless-stopped
+  qdrant:
+      image: qdrant/qdrant
+      ports:
+        - "6333:6333"
+      volumes:
+        - qdrant_data:/qdrant/storage
+      restart: unless-stopped
+  indictrans:
+      build:
+        context: ./services/indictrans
+      ports:
+        - "8000:8000"
+      restart: unless-stopped
+      environment:
+        - HUGGINGFACE_HUB_TOKEN=${HUGGINGFACE_HUB_TOKEN}
+      deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                count: all
+                capabilities: [gpu]
 volumes:
   ollama_data:
   open-webui_data:
+  qdrant_data:

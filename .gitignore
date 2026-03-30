@@ -143,3 +143,5 @@ _site
 .jekyll-metadata
 vendor
 Gemfile.lock
+.pnpm-store/*
+samples/images/*

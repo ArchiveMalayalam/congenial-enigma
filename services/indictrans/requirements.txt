@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+transformers
+torch
+sentencepiece
+sacremoses
+indic-trans-toolkit

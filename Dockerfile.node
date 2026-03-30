@@ -1,0 +1,6 @@
+FROM node:22
+
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    tesseract-ocr-mal \
+    && rm -rf /var/lib/apt/lists/*
