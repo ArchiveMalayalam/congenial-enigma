@@ -1,14 +1,28 @@
+import pkg from 'pg';
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 import { pdf } from "pdf-to-img";
-import fetch from "node-fetch"; // Make sure to install node-fetch if using Node < 18
 
+const { Client } = pkg;
 const IMAGES_DIR = "/workspace/samples/kerala_university_malayalam_print_1900_1950";
 const OUTPUT_DIR = "/workspace/samples/images";
 const IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp"];
-const QDRANT_URL = "http://qdrant:6333"; // internal Docker network
-const COLLECTION_NAME = "ArchiveML";
+
+// Use the ENV variable from Docker Compose
+const client = new Client({ connectionString: process.env.DATABASE_URL });
+await client.connect();
+
+// Initialize Table
+await client.query(`
+  CREATE TABLE IF NOT EXISTS ocr_pages (
+    id SERIAL PRIMARY KEY,
+    doc_name TEXT,
+    page_number INTEGER,
+    content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
 
 function tesseract(imagePath) {
   const result = execSync(
@@ -18,28 +32,19 @@ function tesseract(imagePath) {
   return result.trim();
 }
 
-async function sendToQdrant(id, text, metadata = {}) {
-  const res = await fetch(`${QDRANT_URL}/collections/${COLLECTION_NAME}/documents`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      id,
-      text,
-      metadata,
-    }),
-  });
-
-  if (!res.ok) {
-    console.error(`Failed to push ${id} to Qdrant:`, await res.text());
-  } else {
-    console.log(`✅ Pushed ${id} to Qdrant`);
-  }
+async function saveToDb(docName, pageNum, text) {
+  await client.query(
+    "INSERT INTO ocr_pages (doc_name, page_number, content) VALUES ($1, $2, $3)",
+    [docName, pageNum, text]
+  );
+  console.log(`✅ Saved ${docName} p${pageNum} to Postgres`);
 }
 
 async function processImage(imagePath) {
   const text = tesseract(imagePath);
   const id = path.basename(imagePath, path.extname(imagePath));
-  await sendToQdrant(id, text, { source: "image file" });
+  // Fixed arguments: docName, pageNum (1 for single image), text
+  await saveToDb(id, 1, text);
   return text;
 }
 
@@ -55,8 +60,8 @@ async function processPdf(pdfPath) {
     fs.writeFileSync(imagePath, page);
 
     const text = tesseract(imagePath);
-    const docId = `${baseName}-page${i}`;
-    await sendToQdrant(docId, text, { source: "pdf page" });
+    // FIXED: Changed sendToQdrant to saveToDb
+    await saveToDb(baseName, i, text);
 
     console.log("done");
     i++;

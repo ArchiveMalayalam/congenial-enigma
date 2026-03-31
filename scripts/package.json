@@ -10,9 +10,11 @@
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.32.1",
+  "type": "module",
   "dependencies": {
     "canvas": "^3.2.1",
     "pdf-to-img": "^5.0.0",
-    "pdfjs-dist": "^5.5.207"
+    "pdfjs-dist": "^5.5.207",
+    "pg": "^8.20.0"
   }
 }

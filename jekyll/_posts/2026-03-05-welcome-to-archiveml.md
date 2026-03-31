@@ -93,3 +93,44 @@ Current work focuses on:
 - Setting up a vector database for retrieval
 
 Future posts will document the progress, technical challenges, and lessons learned along the way.
+
+## Accessing the Data Layer
+
+Since ArchiveML runs in a fully containerized environment, the data is stored in a persistent PostgreSQL instance. This ensures that the digitized text is decoupled from the application logic and can be exported or queried by other services.
+
+To verify the OCR pipeline results during development, we use the following commands to interact directly with the database container.
+
+### 1. Check Processing Progress
+To see a summary of how many pages have been successfully digitized and stored, run:
+
+`docker exec -it 02d2a4a9e3f3 psql -U archive_user -d ocr_results -c "SELECT doc_name, COUNT(page_number) as pages FROM ocr_pages GROUP BY doc_name;"`
+
+### 2. Inspect Extracted Malayalam Text
+To pull a sample of the raw OCR output directly from the database for quality checking:
+
+`docker exec -it 02d2a4a9e3f3 psql -U archive_user -d ocr_results -c "SELECT doc_name, page_number, substring(content from 1 for 100) AS snippet FROM ocr_pages LIMIT 5;"`
+
+### 3. Open an Interactive SQL Shell
+For deep-diving into the records or performing manual data cleaning:
+
+`docker exec -it 02d2a4a9e3f3 psql -U archive_user -d ocr_results`
+
+*Note: Replace `02d2a4a9e3f3` with your current container ID if the stack is rebuilt.*
+
+## Viewing the Documentation
+
+The ArchiveML documentation and project logs are available in two formats depending on your environment:
+
+### 1. Local Web Interface (Recommended)
+If the Docker stack is running, you can view the fully rendered documentation, including technical logs and project updates, at:
+
+**[http://localhost:4000](http://localhost:4000)**
+
+*Note: Jekyll may take 1-2 minutes to initialize on the first boot as it builds the site from source.*
+
+### 2. Raw Markdown Files
+If you are browsing the source code directly or the web server is offline, all project posts and documentation are stored as human-readable Markdown files in the repository:
+
+**`archiveml/jekyll/_posts/`**
+
+These files contain the full technical history of the project, including OCR configurations and database schema designs, and can be read in any text editor or GitHub's file viewer.

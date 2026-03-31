@@ -1,4 +1,10 @@
-## OCR Model Journey`
+---
+layout: post
+title: "LLMs? No thanks, Just Tessaract."
+date: 2026-03-16
+categories: project
+---
+## OCR Model Journey
 
 We went through several models before landing on a working solution.
 

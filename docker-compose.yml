@@ -11,56 +11,40 @@ services:
     volumes:
       - .:/workspace
     command: bash -c "cd /workspace/jekyll && bundle install && bundle exec jekyll serve --livereload --host 0.0.0.0"
-  ollama:
-    image: ollama/ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
-  open-webui:
-      image: ghcr.io/open-webui/open-webui:main
-      ports:
-        - "3000:8080"
-      environment:
-        - OLLAMA_BASE_URL=http://ollama:11434
-      volumes:
-        - open-webui_data:/app/backend/data
-      depends_on:
-        - ollama
-      restart: unless-stopped
+
   node:
-      build:
-        context: .
-        dockerfile: Dockerfile.node
-      working_dir: /workspace
-      volumes:
-        - .:/workspace
-      command: bash -c "npm install -g pnpm && sleep infinity"
-      restart: unless-stopped
-  qdrant:
-      image: qdrant/qdrant
-      ports:
-        - "6333:6333"
-      volumes:
-        - qdrant_data:/qdrant/storage
-      restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    working_dir: /workspace
+    environment:
+      - DATABASE_URL=postgres://archive_user:archive_password@db:5432/ocr_results
+    volumes:
+      - .:/workspace
+    depends_on:
+      - db
+    command: bash -c "npm install -g pnpm && cd scripts && pnpm install && node ocr.js"
+    restart: unless-stopped
+
   indictrans:
-      build:
-        context: ./services/indictrans
-      ports:
-        - "8000:8000"
-      restart: unless-stopped
-      environment:
-        - HUGGINGFACE_HUB_TOKEN=${HUGGINGFACE_HUB_TOKEN}
-      deploy:
-        resources:
-          reservations:
-            devices:
-              - driver: nvidia
-                count: all
-                capabilities: [gpu]
+    build:
+      context: ./services/indictrans
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    environment:
+      - HUGGINGFACE_HUB_TOKEN=${HUGGINGFACE_HUB_TOKEN}
+      - HF_TOKEN=${HUGGINGFACE_HUB_TOKEN}
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: archive_user
+      POSTGRES_PASSWORD: archive_password
+      POSTGRES_DB: ocr_results
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
 volumes:
-  ollama_data:
-  open-webui_data:
-  qdrant_data:
+  postgres_data:
